@@ -1,0 +1,12 @@
+program fera;
+const pi = 3.14; const e = 2.73;
+var a, b, c :  integer;
+var d, e, f : real;
+procedure test(g, h, i: integer; j, k, l: real);
+	var local: integer;
+	begin
+	read(a);
+	end;
+begin
+read(a);
+end
