@@ -1,16 +1,17 @@
 %{
 
 #include <stdio.h>
-#include "error_utils.h"
 
 int yylex();					/* função do analisador léxico (lê e retorna tokens) */
 void yyerror(const char*);		/* função chamada quando há erro sintático */
 void init();					/* função que inicializa a tabela de palavras reservadas */
 
-extern error_t current_error;
+extern int is_lexical_error; 	/* =1 se o erro atual eh lexico*/
 extern int yylineno;
 extern const char *error_msg[];
 extern char *yytext;
+int errorn;
+
 
 %}
 
@@ -60,14 +61,16 @@ extern char *yytext;
 
 program: PROGRAM ID SEMICOLON body
 	   | error PROGRAM ID SEMICOLON body
-	   | error SEMICOLON body
-       ;
+	   | error SEMICOLON body 
 
 body: dc BEG1N commands END
+/*	| dc error BEG1N commands END {printf("a[:X %s\n", yytext);}  a ideia dessa regra era sincronizar com BEGIN do programa, isso seria util pra declaracoes de var que nao terminam com ';', infelizmente, idk why, o yacc skipa o procedure se essa linha estiver descomentada :(*/
+
+
+
 
 /* declarações e variáveis*/
 dc: dc_c dc_v dc_p
-  | dc_c dc_v dc_p error BEG1N {puts("AAA");}
 
 dc_c: dc_cc dc_c | %empty
 
@@ -75,16 +78,17 @@ dc_cc: CONST ID EQUAL number SEMICOLON
 	| error SEMICOLON {yyerrok;}
 
 
-
 dc_v: dc_vv dc_v | %empty
 
 dc_vv: VAR variables COLON var_type SEMICOLON
+	| VAR error SEMICOLON {yyerrok;}
 
 var_type: REAL | INTEGER
-		| error {}
+/*		| error {yyerrok; yyclearin;}*/
+
 
 variables: ID more_var
-		 | error {yyerrok;yyclearin;}
+/*		| error {yyerrok;yyclearin;} */
 
 more_var: COMMA variables | %empty
 
@@ -92,30 +96,44 @@ more_var: COMMA variables | %empty
 /*declaracao de procedures*/
 dc_p: dc_pp dc_p | %empty
 dc_pp: PROCEDURE ID parameters SEMICOLON body_p
+	| PROCEDURE error SEMICOLON body_p {yyerrok;}
 
 
 parameters: LBRACKET param_list RBRACKET | %empty
+
 param_list: variables COLON var_type more_param
+		  | %empty
+
 more_param: SEMICOLON param_list | %empty
 body_p: dc_loc BEG1N commands END SEMICOLON
 dc_loc: dc_v
 
 /*fim declaracao de procedures*/
 
+false_p: ELSE cmd | %empty
+
 
 arg_list: LBRACKET arguments RBRACKET | %empty
 arguments: ID more_id
 more_id: SEMICOLON arguments | %empty
-false_p: ELSE cmd | %empty
 commands: cmd SEMICOLON commands | %empty
+		| error SEMICOLON commands 				/*pula um comando ateh achar ';'*/
+
 cmd: READ LBRACKET variables RBRACKET
    | WRITE LBRACKET variables RBRACKET
    | WHILE LBRACKET condition RBRACKET DO cmd
-   | FOR ID ATTRIB INT TO INT DO cmd
+   | WHILE error DO cmd {yyerrok;}   			/*pula declaracao errado do WHILE ateh achar DO*/
+   | FOR ID ATTRIB INT TO INT DO cmd 			/*pula declaracao errada do FOR ateh achar DO*/
+   | FOR error DO cmd {yyerrok;}
+
    | IF condition THEN cmd false_p 
    | ID ATTRIB expression
    | ID arg_list 
    | BEG1N commands END
+   | error THEN cmd false_p
+   
+
+
 condition: expression comparator expression
 comparator: GEQUAL | LEQUAL | EQUAL | GREATER | LESSER | NOTEQUAL
 expression: term other_terms
@@ -125,31 +143,43 @@ add_op: PLUS | MINUS
 term: unary_op factor more_factors
 more_factors: mult_op factor more_factors | %empty
 mult_op: MULT | DIV
-factor: ID | number | LBRACKET expression RBRACKET
+
+factor: ID 
+	  | number 
+      | LBRACKET expression RBRACKET
+      | LBRACKET error RBRACKET {;} 
+
 number: INT | FLOAT
 
 %%
 
 void yyerror(const char* s)
 {
-	//printf ("Erro %d: %s\n", yylineno, error_msg[(int)current_error]); 
+	++errorn;
 
-	printf ("Error %d: ", yylineno); 
-
-	if (current_error == INVALID_CHAR)
+	fprintf (stderr, "[%d] Error:\t", yylineno); 
+	if (is_lexical_error == 1)
 	{
-		puts(error_msg[(int)current_error]);
+		fprintf(stderr, "Invalid Character");
 	}
 	else 
 	{
-		puts(s);
+		fprintf(stderr, "%s", s);
 	}
+	
+	fprintf(stderr, "\t\t(%s)\n", yytext);
 }
 
 int main()
 {
+	errorn = 0;
 	init();
 	yyparse();
-	printf("Análise sintática concluída.\n");
+
+	printf("Parsing completed.");
+	if (errorn > 0)
+		printf(" %d errors found.", errorn);
+	printf("\n");
+
 	return 0;
 }

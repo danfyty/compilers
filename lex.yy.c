@@ -502,13 +502,16 @@ char *yytext;
 #line 10 "lexer.l"
 
 #include "y.tab.h"
-#include "error_utils.h"
 
 /* Estado exclusivo para leitura de comentários */
 
-#line 21 "lexer.l"
+#line 20 "lexer.l"
 #define INVALID_CHARACTER_ERROR -1
 #define UNCLOSED_COMMENT_ERROR -2
+
+int is_lexical_error = 0;
+
+
 /*
 char* token_name[] = {
 "EOF_TOKEN",
@@ -550,8 +553,6 @@ char* token_name[] = {
 "MULT",
 "DIV"};
 */
-
-error_t current_error = SYNTAX_ERROR;
 
 char* reserved_word[] = {
 "program",
@@ -652,7 +653,7 @@ void init()
 }
 
 /* Segunda seção: regexes e ações associadas */
-#line 656 "lex.yy.c"
+#line 657 "lex.yy.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -871,10 +872,10 @@ YY_DECL
 		}
 
 	{
-#line 170 "lexer.l"
+#line 171 "lexer.l"
 
 
-#line 878 "lex.yy.c"
+#line 879 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -943,147 +944,147 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 172 "lexer.l"
+#line 173 "lexer.l"
 {return INT;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 173 "lexer.l"
+#line 174 "lexer.l"
 {return FLOAT;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 174 "lexer.l"
+#line 175 "lexer.l"
 {int w = trie_find(yytext); return w == WORD_NOT_FOUND ? ID : w;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 175 "lexer.l"
+#line 176 "lexer.l"
 {return SEMICOLON;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 176 "lexer.l"
+#line 177 "lexer.l"
 {return PERIOD;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 177 "lexer.l"
+#line 178 "lexer.l"
 {return EQUAL;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 178 "lexer.l"
+#line 179 "lexer.l"
 {return COLON;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 179 "lexer.l"
+#line 180 "lexer.l"
 {return COMMA;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 180 "lexer.l"
+#line 181 "lexer.l"
 {return LBRACKET;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 181 "lexer.l"
+#line 182 "lexer.l"
 {return RBRACKET;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 182 "lexer.l"
+#line 183 "lexer.l"
 {return ATTRIB;}			/* Lembrando que o desempate é por maior match */
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 183 "lexer.l"
+#line 184 "lexer.l"
 {return NOTEQUAL;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 184 "lexer.l"
+#line 185 "lexer.l"
 {return GEQUAL;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 185 "lexer.l"
+#line 186 "lexer.l"
 {return LEQUAL;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 186 "lexer.l"
+#line 187 "lexer.l"
 {return GREATER;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 187 "lexer.l"
+#line 188 "lexer.l"
 {return LESSER;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 188 "lexer.l"
+#line 189 "lexer.l"
 {return PLUS;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 189 "lexer.l"
+#line 190 "lexer.l"
 {return MINUS;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 190 "lexer.l"
+#line 191 "lexer.l"
 {return MULT;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 191 "lexer.l"
+#line 192 "lexer.l"
 {return DIV;}
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 193 "lexer.l"
+#line 194 "lexer.l"
 ;							/* Ignorando espaços, tabs e linebreaks */
 	YY_BREAK
 /* Obs: ao encontrar EOF, a ação default é retornar 0.*/
 case 22:
 YY_RULE_SETUP
-#line 195 "lexer.l"
+#line 196 "lexer.l"
 BEGIN(COMMENT);
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 196 "lexer.l"
+#line 197 "lexer.l"
 BEGIN(INITIAL);
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 197 "lexer.l"
+#line 198 "lexer.l"
 ;
 	YY_BREAK
 case 25:
 /* rule 25 can match eol */
 YY_RULE_SETUP
-#line 199 "lexer.l"
-{BEGIN(INITIAL); current_error = UNCLOSED_COMMENT_ERROR; printf("Error %d: Unclosed comment\n", yylineno - 1);} /*nao retornamos token quando ele ocorre, ou seja, a linha eh ignorada*/
+#line 200 "lexer.l"
+{BEGIN(INITIAL); printf("Error %d: Unclosed comment\n", yylineno - 1);} /*nao retornamos token quando ele ocorre, ou seja, a linha eh ignorada*/
 	YY_BREAK
 case YY_STATE_EOF(COMMENT):
-#line 200 "lexer.l"
-{BEGIN(INITIAL); current_error = UNCLOSED_COMMENT_ERROR; printf("Error %d: Unclosed comment\n", yylineno);}
+#line 201 "lexer.l"
+{BEGIN(INITIAL); printf("Error %d: Unclosed comment\n", yylineno);}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 202 "lexer.l"
-{current_error = INVALID_CHAR; return INVALID_CHARACTER_ERROR;} /*isso causa um erro no analizador sintatico que sabera, pela variavel current_error, que o erro eh lexico*/
+#line 203 "lexer.l"
+{is_lexical_error = 1; return INVALID_CHARACTER_ERROR;} /*isso causa um erro no analizador sintatico que sabera, pela variavel current_error, que o erro eh lexico*/
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 203 "lexer.l"
+#line 204 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1087 "lex.yy.c"
+#line 1088 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2096,7 +2097,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 203 "lexer.l"
+#line 204 "lexer.l"
 
 
 

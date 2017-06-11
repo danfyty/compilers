@@ -9,7 +9,6 @@
 %{
 
 #include "y.tab.h"
-#include "error_utils.h"
 
 %}
 
@@ -20,6 +19,10 @@
 %{
 #define INVALID_CHARACTER_ERROR -1
 #define UNCLOSED_COMMENT_ERROR -2
+
+int is_lexical_error = 0;
+
+
 /*
 char* token_name[] = {
 "EOF_TOKEN",
@@ -61,8 +64,6 @@ char* token_name[] = {
 "MULT",
 "DIV"};
 */
-
-error_t current_error = SYNTAX_ERROR;
 
 char* reserved_word[] = {
 "program",
@@ -196,8 +197,8 @@ void init()
 <COMMENT>\}				BEGIN(INITIAL);
 <COMMENT>.				;
 
-<COMMENT>\n				{BEGIN(INITIAL); current_error = UNCLOSED_COMMENT_ERROR; printf("Error %d: Unclosed comment\n", yylineno - 1);} /*nao retornamos token quando ele ocorre, ou seja, a linha eh ignorada*/
-<COMMENT><<EOF>>		{BEGIN(INITIAL); current_error = UNCLOSED_COMMENT_ERROR; printf("Error %d: Unclosed comment\n", yylineno);}
+<COMMENT>\n				{BEGIN(INITIAL); printf("Error %d: Unclosed comment\n", yylineno - 1);} /*nao retornamos token quando ele ocorre, ou seja, a linha eh ignorada*/
+<COMMENT><<EOF>>		{BEGIN(INITIAL); printf("Error %d: Unclosed comment\n", yylineno);}
 
-.						{current_error = INVALID_CHAR; return INVALID_CHARACTER_ERROR;} /*isso causa um erro no analizador sintatico que sabera, pela variavel current_error, que o erro eh lexico*/
+.						{is_lexical_error = 1; return INVALID_CHARACTER_ERROR;} /*isso causa um erro no analizador sintatico que sabera, pela variavel current_error, que o erro eh lexico*/
 %%
