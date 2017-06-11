@@ -197,8 +197,8 @@ void init()
 <COMMENT>\}				BEGIN(INITIAL);
 <COMMENT>.				;
 
-<COMMENT>\n				{BEGIN(INITIAL); printf("Error %d: Unclosed comment\n", yylineno - 1);} /*nao retornamos token quando ele ocorre, ou seja, a linha eh ignorada*/
-<COMMENT><<EOF>>		{BEGIN(INITIAL); printf("Error %d: Unclosed comment\n", yylineno);}
+<COMMENT>\n				{BEGIN(INITIAL); fprintf (stderr, "[%d] Error:\tunclosed comment\n", yylineno-1);} /*nao retornamos token quando ele ocorre, ou seja, a linha eh ignorada*/
+<COMMENT><<EOF>>		{BEGIN(INITIAL); fprintf (stderr, "[%d] Error:\tunclosed comment\n", yylineno);}
 
 .						{is_lexical_error = 1; return INVALID_CHARACTER_ERROR;} /*isso causa um erro no analizador sintatico que sabera, pela variavel current_error, que o erro eh lexico*/
 %%
