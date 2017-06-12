@@ -1,5 +1,5 @@
 CC=gcc
-YACC_FLAGS=--debug --verbose
+YACC_FLAGS=
 
 .PHONY: all clear zip
 

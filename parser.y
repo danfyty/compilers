@@ -64,9 +64,6 @@ program: PROGRAM ID SEMICOLON body
 	   | error SEMICOLON body 
 
 body: dc BEG1N commands END
-/*	| dc error BEG1N commands END {printf("a[:X %s\n", yytext);}  a ideia dessa regra era sincronizar com BEGIN do programa, isso seria util pra declaracoes de var que nao terminam com ';', infelizmente, idk why, o yacc skipa o procedure se essa linha estiver descomentada :(*/
-
-
 
 
 /* declarações e variáveis*/
@@ -84,11 +81,9 @@ dc_vv: VAR variables COLON var_type SEMICOLON
 	| VAR error SEMICOLON {yyerrok;}
 
 var_type: REAL | INTEGER
-/*		| error {yyerrok; yyclearin;}*/
 
 
 variables: ID more_var
-/*		| error {yyerrok;yyclearin;} */
 
 more_var: COMMA variables | %empty
 
